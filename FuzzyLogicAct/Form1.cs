@@ -9,16 +9,31 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 /*
- * Here is a quick rundown on how it works:
-The boss takes 4 values as crisp inputs 
-Player HP, Boss HP, Distance and Player Aggression.
-With these 4 inputs, it goes through the MAMDANI fuzzification process [this is really just sir alliac's code]. They are fed through a triangular membership and is evaluated with 3 rules:
+Gameplay deets:
+    The boss moves only 1 tile and attacks in a chess like pattern similar to that to the Empress [knight + rook] if player is in range.
+    The player can move in 4 directions and attack with spacebar. 
+    The boss does this pattern: act -> wait -> act -> wait [and so on] to give the player a chance to react!
 
-1. Flee ONLY if dying AND player is right next to you
-2. Hold position if in the sweet spot, OR if player is super passive
-3. Hunt the player if healthy, OR if the player ran far away
+Fuzzy Logic Explanation:
+    Here is a quick rundown on how it works:
+    The boss takes 4 values as crisp inputs 
+    Player HP, Boss HP, Distance and Player Aggression.
+    With these 4 inputs, it goes through the MAMDANI fuzzification process [this is really just sir alliac's code]. 
+    
+    They are fed through a triangular membership and is evaluated with 3 rules:
+    1. Flee ONLY if dying AND player is right next to you
+    2. Hold position if in the sweet spot, OR if player is super passive
+    3. Hunt the player if healthy, OR if the player ran far away
 
-When all three rules are evaluated, they are defuzzified into crisp values and become input to the boss's logic
+    Based on sir alliac's discussion, AND finds the minimum of the two values, while OR finds the maximum of the two values.
+    When all three rules are evaluated, they are defuzzified into crisp values and become input to the boss's logic
+    [I'm still yet to write more detailed things sorry]
+
+Dev notes:
+    The codebase is a bit messy, with ui being generated via code and the logic being in the same file.
+    It would be best to separate the ui towards the Form1.cs [Design] jud.
+
+
 */
 
 namespace FuzzyLogicAct
@@ -31,7 +46,7 @@ namespace FuzzyLogicAct
         int player_dmg = 10, boss_melee_dmg = 15, boss_ranged_dmg = 10;
         double playerHP = 100, bossHP = 100;
         double playerAggression = 50;
-        bool bossIsWaiting = false; // Add this line
+        bool bossIsWaiting = false;
 
         // 2. UI Controls
         Panel[,] gridPanels = new Panel[10, 10];
@@ -43,7 +58,7 @@ namespace FuzzyLogicAct
             InitializeComponent();
             this.Size = new Size(600, 700);
             this.Text = "Fuzzy Logic Boss Fight";
-            this.DoubleBuffered = true; // Reduces flickering
+            this.DoubleBuffered = true;
 
             SetupArena();
             UpdateUI("Awaiting first move...");
@@ -140,7 +155,7 @@ namespace FuzzyLogicAct
             double aggPassive = TriangularMembership(playerAggression, 0, 0, 50);
             double aggAggressive = TriangularMembership(playerAggression, 50, 100, 100);
 
-            // 3. RULE EVALUATION (Tweaked for Aggressive Hunting)
+            // 3. RULE EVALUATION
             // Rule 1: Flee ONLY if dying AND player is right next to you
             double rule1_strength = Math.Min(bossHpLow, distNear);
 
