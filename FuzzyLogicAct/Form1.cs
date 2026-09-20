@@ -16,17 +16,34 @@ Gameplay deets:
 
 Fuzzy Logic Explanation:
     Here is a quick rundown on how it works:
-    The boss takes 3 values as crisp inputs 
-    Boss HP, Distance and Player Aggression.
+
+    The boss takes 3 crisp inputs:
+    Boss HP, [Manhattan] Distance and Player Aggression.
     With these 3 inputs, it goes through the MAMDANI fuzzification process [this is really just sir alliac's code]. 
-    
+    Inputs are mapped to overlapping fuzzy sets using Triangular Membership functions.    
+
     They are fed through a triangular membership and is evaluated with 3 rules:
-    1. Flee ONLY if dying AND player is right next to you
-    2. Hold position if in the sweet spot, OR if player is super passive
-    3. Hunt the player if healthy, OR if the player ran far away
+    1. Flee ONLY if the boss hp is low AND player is right next to you
+    2. Hold position if in the sweet spot OR if player is super passive
+    3. Hunt the player if boss hp is high OR if the player ran far away
 
     Based on sir alliac's discussion, AND finds the minimum of the two values, while OR finds the maximum of the two values.
-    When all three rules are evaluated, they are defuzzified into crisp values and become input to the boss's logic
+    When all three rules are evaluated, they are defuzzified as a final crisp behavioral stance (0-100) calculated using 
+    Centroid defuzzification and become input to the boss's logic!
+*/
+
+/* RULE MATRIX TABLE GUIDE.
+
+Rule    Boss HP     Logic   Distance    Logic   Player Aggression   Output Stance   Math Operator
+1       Low         AND     Near        -       (Any)               Defensive       Math.Min
+2       (Any)       -       Mid         OR      Passive             Neutral         Math.Max
+3       High        OR      Far         -       (Any)               Aggressive      Math.Max
+
+Once more, here is the list of the rules:
+Rule 1 (Defensive): IF Boss HP is Low AND Distance is Near.
+Rule 2 (Neutral):   IF Distance is Mid OR Player Aggression is Passive.
+Rule 3 (Aggressive):IF Boss HP is High OR Distance is Far.
+
 */
 
 namespace FuzzyLogicAct
