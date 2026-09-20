@@ -33,7 +33,6 @@ namespace FuzzyLogicAct
 {
     public partial class Form1 : Form
     {
-        // 1. Game State Variables
         int playerX = 0, playerY = 0;
         int bossX = 9, bossY = 9;
         int player_dmg = 10, boss_melee_dmg = 15, boss_ranged_dmg = 10;
@@ -41,7 +40,6 @@ namespace FuzzyLogicAct
         double playerAggression = 50;
         bool bossIsWaiting = false;
 
-        // 2. UI Controls
         Panel[,] gridPanels = new Panel[10, 10];
 
         public Form1()
@@ -54,8 +52,7 @@ namespace FuzzyLogicAct
             UpdateUI("PLAYER MOVES FIRST.");
         }
 
-        // --- UI & INPUT HANDLING ---
-
+        //UI & INPUT HANDLING
         private void SetupArena()
         {
             int availableWidth = pnlArena.ClientSize.Width;
@@ -96,7 +93,6 @@ namespace FuzzyLogicAct
                 validMove = true;
                 playerAggression += 20;
 
-                // Strict Orthogonal Check: Distance must be exactly 1
                 if (oldDistance == 1) bossHP -= player_dmg;
             }
 
@@ -109,7 +105,7 @@ namespace FuzzyLogicAct
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
-        // --- FUZZY LOGIC CORE ---
+        //FUZZY LOGIC CORE. [THIS IS WHERE THE MAGIC HAPPENS]
 
         private void ExecuteBossTurn(bool playerAttacked, double oldDistance)
         {
@@ -181,7 +177,6 @@ namespace FuzzyLogicAct
                 int pdx = Math.Abs(playerX - bossX);
                 int pdy = Math.Abs(playerY - bossY);
 
-                // Remove the pdx == pdy check
                 bool canRangedAttack = (playerX == bossX || playerY == bossY) ||
                                        ((pdx == 2 && pdy == 1) || (pdx == 1 && pdy == 2));
 
