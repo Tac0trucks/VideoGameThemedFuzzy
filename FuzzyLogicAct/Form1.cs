@@ -146,6 +146,7 @@ namespace FuzzyLogicAct
             double sumDenominator = 0.0;
             double step = 1.0;
 
+            // This is where we calculate the integral
             for (double y = 0.0; y <= 100.0; y += step)
             {
                 double outDefensive = TriangularMembership(y, 0, 0, 40);
