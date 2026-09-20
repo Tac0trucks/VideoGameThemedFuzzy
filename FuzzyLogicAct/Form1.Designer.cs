@@ -35,6 +35,8 @@
             this.lblBossStats = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.pnl3DSurface = new FuzzyLogicAct.DoubleBufferedPanel();
+            this.pnlCurves = new FuzzyLogicAct.DoubleBufferedPanel();
             this.SuspendLayout();
             // 
             // lblFuzzyDebug
@@ -101,11 +103,29 @@
             this.panel2.Size = new System.Drawing.Size(50, 50);
             this.panel2.TabIndex = 7;
             // 
+            // pnl3DSurface
+            // 
+            this.pnl3DSurface.Location = new System.Drawing.Point(776, 384);
+            this.pnl3DSurface.Name = "pnl3DSurface";
+            this.pnl3DSurface.Size = new System.Drawing.Size(1074, 622);
+            this.pnl3DSurface.TabIndex = 8;
+            this.pnl3DSurface.Paint += new System.Windows.Forms.PaintEventHandler(this.pnl3DSurface_Paint);
+            // 
+            // pnlCurves
+            // 
+            this.pnlCurves.Location = new System.Drawing.Point(776, 66);
+            this.pnlCurves.Name = "pnlCurves";
+            this.pnlCurves.Size = new System.Drawing.Size(1074, 278);
+            this.pnlCurves.TabIndex = 9;
+            this.pnlCurves.Paint += new System.Windows.Forms.PaintEventHandler(this.pnlCurves_Paint);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(832, 745);
+            this.ClientSize = new System.Drawing.Size(1902, 1033);
+            this.Controls.Add(this.pnlCurves);
+            this.Controls.Add(this.pnl3DSurface);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.lblBossStats);
@@ -127,5 +147,7 @@
         private System.Windows.Forms.Label lblBossStats;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
+        private DoubleBufferedPanel pnl3DSurface;
+        private DoubleBufferedPanel pnlCurves;
     }
 }
