@@ -27,13 +27,6 @@ Fuzzy Logic Explanation:
 
     Based on sir alliac's discussion, AND finds the minimum of the two values, while OR finds the maximum of the two values.
     When all three rules are evaluated, they are defuzzified into crisp values and become input to the boss's logic
-    [I'm still yet to write more detailed things sorry]
-
-Dev notes:
-    The codebase is a bit messy, with ui being generated via code and the logic being in the same file.
-    It would be best to separate the ui towards the Form1.cs [Design] jud.
-
-
 */
 
 namespace FuzzyLogicAct
@@ -50,52 +43,39 @@ namespace FuzzyLogicAct
 
         // 2. UI Controls
         Panel[,] gridPanels = new Panel[10, 10];
-        Label lblStats;
-        Label lblFuzzyDebug;
 
         public Form1()
         {
             InitializeComponent();
-            this.Size = new Size(600, 700);
             this.Text = "Fuzzy Logic Boss Fight";
             this.DoubleBuffered = true;
 
             SetupArena();
-            UpdateUI("Awaiting first move...");
+            UpdateUI("PLAYER MOVES FIRST.");
         }
 
         // --- UI & INPUT HANDLING ---
 
         private void SetupArena()
         {
-            // Stat Label (Top)
-            lblStats = new Label();
-            lblStats.Bounds = new Rectangle(20, 10, 500, 30);
-            lblStats.Font = new Font("Consolas", 12, FontStyle.Bold);
-            this.Controls.Add(lblStats);
+            int availableWidth = pnlArena.ClientSize.Width;
+            int availableHeight = pnlArena.ClientSize.Height;
 
-            // 10x10 Grid
-            int tileSize = 40;
-            int offsetX = 20;
-            int offsetY = 50;
+            int tileSize = Math.Min(availableWidth, availableHeight) / 10;
+            pnlArena.ClientSize = new Size(tileSize * 10, tileSize * 10);
 
             for (int y = 0; y < 10; y++)
             {
                 for (int x = 0; x < 10; x++)
                 {
                     Panel p = new Panel();
-                    p.Bounds = new Rectangle(offsetX + (x * tileSize), offsetY + (y * tileSize), tileSize - 2, tileSize - 2);
+                    p.Bounds = new Rectangle(x * tileSize, y * tileSize, tileSize - 1, tileSize - 1);
                     p.BackColor = Color.LightGray;
-                    this.Controls.Add(p);
+
+                    pnlArena.Controls.Add(p);
                     gridPanels[x, y] = p;
                 }
             }
-
-            // Debug Label (Bottom)
-            lblFuzzyDebug = new Label();
-            lblFuzzyDebug.Bounds = new Rectangle(20, 470, 500, 150);
-            lblFuzzyDebug.Font = new Font("Consolas", 10);
-            this.Controls.Add(lblFuzzyDebug);
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -262,7 +242,8 @@ namespace FuzzyLogicAct
 
         private void UpdateUI(string debugText)
         {
-            lblStats.Text = $"Player HP: {playerHP}  |  Boss HP: {bossHP}";
+            lblPlayerStats.Text = $"Player HP: {playerHP}\nMelee DMG: {player_dmg}";
+            lblBossStats.Text = $"Boss HP: {bossHP}\nMelee DMG: {boss_melee_dmg}\n Laser DMG: {boss_ranged_dmg}";
             lblFuzzyDebug.Text = debugText;
 
             for (int y = 0; y < 10; y++)
@@ -272,11 +253,10 @@ namespace FuzzyLogicAct
                     int dx = Math.Abs(x - bossX);
                     int dy = Math.Abs(y - bossY);
 
-                    // Straight lines and Knight L-shapes only
+                    //Straight lines and Knight L-shapes only
                     bool isStraight = (x == bossX || y == bossY);
                     bool isLShape = ((dx == 2 && dy == 1) || (dx == 1 && dy == 2));
 
-                    // Draw the updated threat zone
                     if (isStraight || isLShape)
                     {
                         gridPanels[x, y].BackColor = Color.LightCoral;
@@ -286,7 +266,7 @@ namespace FuzzyLogicAct
                         gridPanels[x, y].BackColor = Color.LightGray;
                     }
 
-                    // Draw Entities on top
+                    //Draw Entities on top
                     if (x == playerX && y == playerY)
                         gridPanels[x, y].BackColor = Color.DodgerBlue;
                     else if (x == bossX && y == bossY)
