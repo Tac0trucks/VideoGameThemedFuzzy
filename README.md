@@ -14,9 +14,9 @@ A small Windows Forms demo that demonstrates a simple MAMDANI-style fuzzy logic 
 - Live visualization of input membership functions and Mamdani clipped output
 - Tab to cycle graph modes and a small 3D surface visualization
 - Simple rule set:
-  1. Defensive if `Boss HP` is low AND `Distance` is near
-  2. Neutral if `Distance` is mid OR player is passive
-  3. Aggressive if `Boss HP` is high OR `Distance` is far
+  1. Rule 1 (Defensive): IF `Boss HP` is Low AND `Distance` is Near. 
+  2. Rule 2 (Neutral):   IF `Distance` is Mid AND `Player Aggression` is Passive. 
+  3. Rule 3 (Aggressive):IF `Boss HP` is High OR `Distance` is Far.
 - Centroid defuzzification produces final crisp stance (0–100)
 
 ## Controls
@@ -30,6 +30,11 @@ A small Windows Forms demo that demonstrates a simple MAMDANI-style fuzzy logic 
 - Rules combined using `Math.Min` for AND and `Math.Max` for OR.
 - Mamdani clipping produces a combined output fuzzy set.
 - Centroid (weighted average) defuzzification yields a crisp stance used for boss behavior (move towards / away, attack choices).
+
+## Crisp Action Thresholds:
+ - [ 0 - 44 ] Defensive  -> Flee or Panic Laser
+ - [ 45 - 55] Neutral    -> Hold Position / Strafe
+ - [ 56 - 100] Aggressive-> Hunt, Melee, or Ranged Laser
 
 ## Prerequisites
 - Windows
