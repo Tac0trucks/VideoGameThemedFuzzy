@@ -9,41 +9,45 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 /*
-Gameplay deets:
-    The boss moves only 1 tile and attacks in a chess like pattern similar to that to the Empress [knight + rook] if player is in range.
-    The player can move in 4 directions and attack with spacebar. 
-    The boss does this pattern: act -> wait -> act -> wait [and so on] to give the player a chance to react!
+Gameplay Mechanics:
+    - Player Action: Navigates orthogonally (WASD) and attacks (Spacebar).
+    - Boss Pacing: Operates on a turn-based cadence (Act -> Wait -> Act) to provide the player with a reaction window.
+    - Boss Combat: Movement is constrained to 1 tile per turn. Ranged attacks utilize an "Empress" pattern (orthogonal lines + Knight L-shapes).
 
-Fuzzy Logic Explanation:
-    Here is a quick rundown on how it works:
+Fuzzy Inference System (Mamdani Model):
+    The boss's decision-making engine is driven by a 3-input Mamdani fuzzy logic controller, 
+    adapting foundational fuzzy implementation concepts discussed by Sir Alliac.
 
-    The boss takes 3 crisp inputs:
-    Boss HP, [Manhattan] Distance and Player Aggression.
-    With these 3 inputs, it goes through the MAMDANI fuzzification process [this is really just sir alliac's code]. 
-    Inputs are mapped to overlapping fuzzy sets using Triangular Membership functions.    
+    1. Crisp Inputs: 
+       Boss HP, Manhattan Distance, and Player Aggression.
+    
+    2. Fuzzification: 
+       Inputs are mapped to overlapping fuzzy sets using Triangular Membership functions. 
+       (Note: Boss HP triangles cross completely at 50 to prevent logic dead-zones).
+    
+    3. Rule Evaluation:
+       - Rule 1 (Defensive): IF Boss HP is Low AND Distance is Near. 
+       - Rule 2 (Neutral):   IF Distance is Mid AND Player Aggression is Passive. 
+       - Rule 3 (Aggressive):IF Boss HP is High OR Distance is Far. 
+    
+    4. Defuzzification (Centroid): 
+       Evaluated rule strengths clip their respective output triangles. These are aggregated, 
+       and a final crisp behavioral stance (0-100) is calculated via discrete Riemann sum integration.
 
-    They are fed through a triangular membership and is evaluated with 3 rules:
-    1. Flee ONLY if the boss hp is low AND player is right next to you
-    2. Hold position if in the sweet spot OR if player is super passive
-    3. Hunt the player if boss hp is high OR if the player ran far away
+    5. Crisp Action Thresholds:
+       [ 0 - 44 ] Defensive  -> Flee or Panic Laser
+       [ 45 - 55] Neutral    -> Hold Position / Strafe
+       [ 56 - 100] Aggressive-> Hunt, Melee, or Ranged Laser
 
-    Based on sir alliac's discussion, AND finds the minimum of the two values, while OR finds the maximum of the two values.
-    When all three rules are evaluated, they are defuzzified as a final crisp behavioral stance (0-100) calculated using 
-    Centroid defuzzification and become input to the boss's logic!
-*/
-
-/* RULE MATRIX TABLE GUIDE.
-
-Rule    Boss HP     Logic   Distance    Logic   Player Aggression   Output Stance   Math Operator
-1       Low         AND     Near        -       (Any)               Defensive       Math.Min
-2       (Any)       -       Mid         OR      Passive             Neutral         Math.Max
-3       High        OR      Far         -       (Any)               Aggressive      Math.Max
-
-Once more, here is the list of the rules:
-Rule 1 (Defensive): IF Boss HP is Low AND Distance is Near.
-Rule 2 (Neutral):   IF Distance is Mid OR Player Aggression is Passive.
-Rule 3 (Aggressive):IF Boss HP is High OR Distance is Far.
-
+====================================================================
+RULE MATRIX TABLE
+====================================================================
+Rule | Boss HP | Logic | Distance | Logic | Player Aggression | Output Stance | Math Operator
+---------------------------------------------------------------------------------------------
+  1  | Low     | AND   | Near     |   -   | (Any)             | Defensive     | Math.Min
+  2  | (Any)   |   -   | Mid      | AND   | Passive           | Neutral       | Math.Min
+  3  | High    | OR    | Far      |   -   | (Any)             | Aggressive    | Math.Max
+====================================================================
 */
 
 namespace FuzzyLogicAct
@@ -52,7 +56,7 @@ namespace FuzzyLogicAct
     {
         int playerX = 0, playerY = 0;
         int bossX = 9, bossY = 9;
-        int player_dmg = 5, boss_melee_dmg = 20, boss_ranged_dmg = 10;
+        int player_dmg = 5, boss_melee_dmg = 15, boss_ranged_dmg = 10;
         double playerHP = 100, bossHP = 100;
         double playerAggression = 50;
         bool bossIsWaiting = false;
@@ -170,7 +174,7 @@ namespace FuzzyLogicAct
                 bool canRangedAttack = (playerX == bossX || playerY == bossY) ||
                                        ((pdx == 2 && pdy == 1) || (pdx == 1 && pdy == 2));
 
-                if (crispStance < 40)
+                if (crispStance < 45)
                 {
                     // Defensive Stance
                     if (canRangedAttack)
@@ -184,7 +188,7 @@ namespace FuzzyLogicAct
                         MoveBoss(false);
                     }
                 }
-                else if (crispStance >= 40 && crispStance <= 65)
+                else if (crispStance >= 45 && crispStance <= 55)
                 {
                     bossAction = "Neutral (Positioning)";
                     MoveBoss(true);
@@ -240,7 +244,7 @@ namespace FuzzyLogicAct
 
             // Rule Evaluation
             rule1_strength = Math.Min(bossHpLow, distNear);
-            rule2_strength = Math.Max(distMid, aggPassive);
+            rule2_strength = Math.Min(distMid, aggPassive);
             rule3_strength = Math.Max(bossHpHigh, distFar);
 
             // Defuzzification
@@ -548,19 +552,38 @@ namespace FuzzyLogicAct
 
         private void MoveBoss(bool moveTowards)
         {
+            int dx = playerX - bossX;
+            int dy = playerY - bossY;
+
             if (moveTowards)
             {
-                if (bossX < playerX) bossX++;
-                else if (bossX > playerX) bossX--;
-                else if (bossY < playerY) bossY++;
-                else if (bossY > playerY) bossY--;
+                // Chase by cutting across the largest gap, pushing the boss into the center
+                if (Math.Abs(dx) >= Math.Abs(dy) && dx != 0)
+                {
+                    bossX += Math.Sign(dx);
+                }
+                else if (dy != 0)
+                {
+                    bossY += Math.Sign(dy);
+                }
             }
             else
             {
-                if (bossX < playerX && bossX > 0) bossX--;
-                else if (bossX > playerX && bossX < 9) bossX++;
-                else if (bossY < playerY && bossY > 0) bossY--;
-                else if (bossY > playerY && bossY < 9) bossY++;
+                // Flee in the opposite direction, with fallback logic to slide along walls if trapped
+                if (Math.Abs(dx) >= Math.Abs(dy) && dx != 0)
+                {
+                    if (dx > 0 && bossX > 0) bossX--;
+                    else if (dx < 0 && bossX < 9) bossX++;
+                    else if (dy > 0 && bossY > 0) bossY--;
+                    else if (dy < 0 && bossY < 9) bossY++;
+                }
+                else if (dy != 0)
+                {
+                    if (dy > 0 && bossY > 0) bossY--;
+                    else if (dy < 0 && bossY < 9) bossY++;
+                    else if (dx > 0 && bossX > 0) bossX--;
+                    else if (dx < 0 && bossX < 9) bossX++;
+                }
             }
         }
 
